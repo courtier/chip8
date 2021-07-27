@@ -1,0 +1,7 @@
+*.d
+*.py
+*.txt
+archive/
+obj/
+chip8
+.*
