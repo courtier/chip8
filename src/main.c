@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <execinfo.h>
-#include <signal.h>
-#include <unistd.h>
-
 #include <SDL2/SDL.h>
 
 /*compare: https://colineberhardt.github.io/wasm-rust-chip8/web/*/
