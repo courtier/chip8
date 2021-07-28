@@ -249,7 +249,6 @@ int main(int argc, char *argv[])
                     }
                 }
                 SDL_RenderPresent(renderer);
-                machine.draw_screen = false;
             }
         }
         last_frame_time = current_frame_time;
