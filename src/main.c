@@ -314,7 +314,6 @@ int run_instruction(Machine *machine)
         {
             machine->PC += 2;
         }
-        return 0;
         break;
     case 0x4000:
         printf("4\n");
