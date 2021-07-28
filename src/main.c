@@ -93,26 +93,12 @@ void multiply_pixels(SDL_Rect *rect, int x, int y);
 int load_rom(Machine *machine, char *path);
 int run_instruction(Machine *machine);
 void draw_instruction(Machine *machine, unsigned int x, unsigned int y, unsigned int n);
-
-void handler(int sig)
-{
-    void *array[10];
-    size_t size;
-
-    // get void*'s for all entries on the stack
-    size = backtrace(array, 10);
-
-    // print out all the frames to stderr
-    fprintf(stderr, "Error: signal %d:\n", sig);
-    backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(1);
-}
+unsigned int unsigned_atoi(char *str);
 
 int main(int argc, char *argv[])
 {
-    signal(SIGSEGV, handler); // install our handler
     char window_name[255];
-    unsigned long cile_frequency = 1 / 700 * 10000000;
+    unsigned long cpu_frequency = 1 / 700 * 10000000;
     SDL_Window *window;
     SDL_Renderer *renderer;
 
@@ -128,7 +114,7 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-        fprintf(stderr, "usage: ./chip8 <path to rom> [opt: cile freq. - DEF: 700hz]\n");
+        fprintf(stderr, "usage: ./chip8 <path to rom> [opt: cpu freq. - DEF: 700hz]\n");
         return 1;
     }
     if (sizeof(argv[1]) + 17 > 255)
@@ -140,6 +126,19 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "error load_rom\n");
         return 1;
+    }
+    if (argc >= 3)
+    {
+        unsigned int freq_arg;
+        freq_arg = unsigned_atoi(argv[2]);
+        if (freq_arg > 0)
+        {
+            cpu_frequency = 1 / freq_arg * 10000000;
+        }
+        else
+        {
+            fprintf(stderr, "error parsing cpu freq, using default of 700\n");
+        }
     }
     if (sprintf(window_name, "CHIP8 Emulator - %s", argv[1]) < 0)
     {
@@ -215,7 +214,7 @@ int main(int argc, char *argv[])
         }
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &current_frame_time);
-        if (current_frame_time.tv_nsec - last_frame_time.tv_nsec >= cile_frequency)
+        if (current_frame_time.tv_nsec - last_frame_time.tv_nsec >= cpu_frequency)
         {
             /*process instruction*/
             run_instruction(&machine);
@@ -650,4 +649,15 @@ int load_rom(Machine *machine, char *path)
     }
     fclose(rom_file);
     return 0;
+}
+
+unsigned int unsigned_atoi(char *str)
+{
+    unsigned int val = 0;
+    while (*str)
+    {
+        val = val * 10 + (*str - '0');
+        str++;
+    }
+    return val;
 }
