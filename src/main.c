@@ -5,7 +5,9 @@
 
 #include <SDL2/SDL.h>
 
-/*compare: https://colineberhardt.github.io/wasm-rust-chip8/web/*/
+/*compare: https://colineberhardt.github.io/wasm-rust-chip8/web/
+https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set
+*/
 
 /*64x32 is too small, so we multiply by this amount*/
 #define SCREEN_MULTIPLIER 10
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-        fprintf(stderr, "usage: ./chip8 <path to rom> [opt: cpu freq. - DEF: 700hz]\n");
+        fprintf(stderr, "usage: ./chip8 <path to rom> [opt: cpu freq. - DEF: 600hz]\n");
         return 1;
     }
     if (sizeof(argv[1]) + 17 > 255)
@@ -258,9 +260,9 @@ end:
 
 int run_instruction(Machine *machine)
 {
-    short opcode;
+    unsigned short opcode;
     unsigned int nnn, x, kk, y, n;
-    int sum;
+    unsigned int sum;
     SDL_Event sdl_event;
     if (machine->PC + 1 > GAME_END)
     {
@@ -275,10 +277,10 @@ int run_instruction(Machine *machine)
         printf("0\n");
         switch (opcode & 0x00FF)
         {
-        case 0x00E0:
+        case 0x00E0: //good
             memset(machine->screen, false, sizeof(machine->screen));
             break;
-        case 0x00EE:
+        case 0x00EE: //good
             machine->PC = machine->Stack[machine->SP & 0xF];
             machine->SP--;
             break;
@@ -287,13 +289,13 @@ int run_instruction(Machine *machine)
             break;
         }
         break;
-    case 0x1000:
+    case 0x1000: //good
         printf("1\n");
         nnn = opcode & 0x0FFF;
         machine->PC = nnn;
         return 0;
         break;
-    case 0x2000:
+    case 0x2000: //good
         printf("2\n");
         nnn = opcode & 0x0FFF;
         machine->SP++;
@@ -301,7 +303,7 @@ int run_instruction(Machine *machine)
         machine->PC = nnn;
         return 0;
         break;
-    case 0x3000:
+    case 0x3000: //good
         printf("3\n");
         x = (opcode & 0x0F00) >> 8;
         kk = opcode & 0x00FF;
@@ -310,7 +312,7 @@ int run_instruction(Machine *machine)
             machine->PC += 2;
         }
         break;
-    case 0x4000:
+    case 0x4000: //good
         printf("4\n");
         x = (opcode & 0x0F00) >> 8;
         kk = opcode & 0x00FF;
@@ -319,7 +321,7 @@ int run_instruction(Machine *machine)
             machine->PC += 2;
         }
         break;
-    case 0x5000:
+    case 0x5000: //good
         printf("5\n");
         x = (opcode & 0x0F00) >> 8;
         y = (opcode & 0x00F0) >> 4;
@@ -328,13 +330,13 @@ int run_instruction(Machine *machine)
             machine->PC += 2;
         }
         break;
-    case 0x6000:
+    case 0x6000: //good
         printf("6\n");
         x = (opcode & 0x0F00) >> 8;
         kk = opcode & 0x00FF;
         machine->VN[x] = kk;
         break;
-    case 0x7000:
+    case 0x7000: //good
         printf("7\n");
         x = (opcode & 0x0F00) >> 8;
         kk = opcode & 0x00FF;
@@ -344,27 +346,27 @@ int run_instruction(Machine *machine)
         printf("8\n");
         switch (opcode & 0x000F)
         {
-        case 0x000:
+        case 0x0000: //good
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             machine->VN[x] = machine->VN[y];
             break;
-        case 0x001:
+        case 0x0001: //good
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             machine->VN[x] = machine->VN[x] | machine->VN[y];
             break;
-        case 0x002:
+        case 0x0002: //good
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             machine->VN[x] = machine->VN[x] & machine->VN[y];
             break;
-        case 0x003:
+        case 0x0003: //good
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             machine->VN[x] = machine->VN[x] ^ machine->VN[y];
             break;
-        case 0x004:
+        case 0x0004: //good?
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             sum = machine->VN[x] + machine->VN[y];
@@ -376,9 +378,10 @@ int run_instruction(Machine *machine)
             {
                 machine->VN[0xF] = 0;
             }
-            machine->VN[x] = sum & 0xFF;
+            // machine->VN[x] = sum & 0xFF;
+            machine->VN[x] = sum;
             break;
-        case 0x005:
+        case 0x0005: //good
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             if (machine->VN[x] > machine->VN[y])
@@ -392,7 +395,7 @@ int run_instruction(Machine *machine)
             machine->VN[x] -= machine->VN[y];
             break;
         /*TODO** https://www.reddit.com/r/EmuDev/comments/8cbvz6/chip8_8xy6/ https://www.reddit.com/r/EmuDev/comments/72dunw/chip8_8xy6_help/*/
-        case 0x006:
+        case 0x0006:
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             if (machine->VN[x] % 2 == 1)
@@ -405,7 +408,7 @@ int run_instruction(Machine *machine)
             }
             machine->VN[x] *= 0.5;
             break;
-        case 0x007:
+        case 0x0007:
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             if (machine->VN[y] > machine->VN[x])
@@ -418,7 +421,7 @@ int run_instruction(Machine *machine)
             }
             machine->VN[x] = machine->VN[y] - machine->VN[x];
             break;
-        case 0x00E:
+        case 0x000E:
             x = (opcode & 0x0F00) >> 8;
             y = (opcode & 0x00F0) >> 4;
             if (machine->VN[x] % 2 == 1)
